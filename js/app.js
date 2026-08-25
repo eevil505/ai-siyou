@@ -9,6 +9,7 @@
   var email = document.getElementById("email");
   var emailError = document.getElementById("email-error");
   var successBox = document.getElementById("form-success");
+  var submitBtn = form.querySelector('button[type="submit"]');
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -52,7 +53,7 @@
   if (email) email.addEventListener("blur", validateEmail);
   if (email) email.addEventListener("input", validateEmail);
 
-  /* 4. 提交：前端校验通过 → 暂存到 localStorage 并显示成功（后端接口 P3 接入） */
+  /* 4. 提交：真实 POST 到后端 /api/diagnosis（P2-3b 后端，2026-08-26 接入） */
   form.addEventListener("submit", function (ev) {
     ev.preventDefault();
     emailError.textContent = "";
@@ -81,14 +82,31 @@
       return;
     }
 
-    /* 暂存提交（后续 POST 到 media/diagnosis.py 接口，P3 接入） */
-    var pending = [];
-    try { pending = JSON.parse(localStorage.getItem("aisiyou_pending") || "[]"); } catch (e) { pending = []; }
-    pending.push(payload);
-    try { localStorage.setItem("aisiyou_pending", JSON.stringify(pending)); } catch (e) { /* 隐私模式忽略 */ }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "正在寄出…"; }
 
-    form.hidden = true;
-    successBox.hidden = false;
-    try { successBox.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+    fetch("/api/diagnosis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (resp) { return resp.json().then(function (d) { return { ok: resp.ok, d: d }; }); })
+      .then(function (r) {
+        if (r.ok && r.d.ok) {
+          form.hidden = true;
+          successBox.hidden = false;
+          try { successBox.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+        } else {
+          throw new Error((r.d && r.d.error) || "服务器返回异常");
+        }
+      })
+      .catch(function (err) {
+        if (emailError) {
+          emailError.textContent = "发送失败：" + err.message + "（请确认服务已启动，或稍后重试）";
+          emailError.classList.add("error-msg");
+        }
+      })
+      .finally(function () {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "免费领取诊断报告"; }
+      });
   });
 })();
