@@ -1,0 +1,14 @@
+{
+  "name": "AI私邮 — AI 英语私教",
+  "short_name": "AI私邮",
+  "description": "AI 英语私教，1 对 1 邮件交付。5 分钟诊断，12 周定制课程，每周邮件 + 逐句批改。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F4F6F8",
+  "theme_color": "#16283C",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
